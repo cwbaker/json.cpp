@@ -25,8 +25,10 @@
 #include <cstdlib>
 #include <stdexcept>
 
+#if defined JSON_CPP_USE_DOUBLE_CONVERSION
 #include "double-conversion/double-to-string.h"
 #include "double-conversion/string-to-double.h"
+#endif
 
 #define KEY 1
 #define COMMA 2
@@ -150,6 +152,7 @@ alignas(signed char) static const signed char kHexToInt[256] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, // 0xf0
 };
 
+#if defined JSON_CPP_USE_DOUBLE_CONVERSION
 static const double_conversion::DoubleToStringConverter kDoubleToJson(
   double_conversion::DoubleToStringConverter::UNIQUE_ZERO |
     double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN,
@@ -170,6 +173,7 @@ static const double_conversion::StringToDoubleConverter kJsonToDouble(
   1.0,
   "Infinity",
   "NaN");
+#endif
 
 #if defined(__GNUC__) || defined(__clang__)
 #define Bsr(x) (__builtin_clz(x) ^ (sizeof(int) * CHAR_BIT - 1))
@@ -204,6 +208,7 @@ Bsr(int x)
 static double
 StringToDouble(const char* s, size_t n, int* out_processed)
 {
+#if defined JSON_CPP_USE_DOUBLE_CONVERSION
     if (n == (size_t)-1)
         n = strlen(s);
     int processed;
@@ -211,6 +216,39 @@ StringToDouble(const char* s, size_t n, int* out_processed)
     if (out_processed)
         *out_processed = processed;
     return res;
+#else
+    (void) n;
+    if (out_processed)
+    {
+        // Calculate number of characters processed by manually parsing the number format
+        const char* p = s;
+
+        // Skip leading whitespace (atof handles this)
+        while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') p++;
+
+        // Handle optional sign
+        if (*p == '+' || *p == '-') p++;
+
+        // Count digits before decimal point
+        while (*p >= '0' && *p <= '9') p++;
+
+        // Handle decimal point and fractional part
+        if (*p == '.') {
+            p++;
+            while (*p >= '0' && *p <= '9') p++;
+        }
+
+        // Handle exponential notation
+        if (*p == 'e' || *p == 'E') {
+            p++;
+            if (*p == '+' || *p == '-') p++;
+            while (*p >= '0' && *p <= '9') p++;
+        }
+
+        *out_processed = p - s;
+    }
+    return std::atof(s);
+#endif
 }
 
 static char*
@@ -624,17 +662,25 @@ Json::marshal(std::string& b, bool pretty, int indent) const
         }
         case Float: {
             char buf[128];
+#if defined JSON_CPP_USE_DOUBLE_CONVERSION
             double_conversion::StringBuilder db(buf, 128);
             kDoubleToJson.ToShortestSingle(float_value, &db);
             db.Finalize();
+#else
+            snprintf(buf, sizeof(buf), "%f", float_value);
+#endif
             b += buf;
             break;
         }
         case Double: {
             char buf[128];
+#if defined JSON_CPP_USE_DOUBLE_CONVERSION
             double_conversion::StringBuilder db(buf, 128);
             kDoubleToJson.ToShortest(double_value, &db);
             db.Finalize();
+#else
+            snprintf(buf, sizeof(buf), "%f", double_value);
+#endif
             b += buf;
             break;
         }
