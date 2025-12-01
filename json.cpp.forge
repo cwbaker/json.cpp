@@ -1,0 +1,10 @@
+
+for _, cc in toolsets('^cc.*') do
+    cc:all {
+        cc:StaticLibrary '${lib}/json.cpp_${platform}_${architecture}' {
+            cc:Cxx '${obj}/%1' {
+                'json.cpp';
+            };
+        };
+    };
+end
