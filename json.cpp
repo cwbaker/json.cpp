@@ -70,7 +70,7 @@
 #define IsLowSurrogate(wc) (((wc) & UTF16_MASK) == UTF16_CONT)
 #define MergeUtf16(hi, lo) ((((hi) - 0xD800) << 10) + ((lo) - 0xDC00) + 0x10000)
 #define EncodeUtf16(wc) \
-    ((0x0000 <= (wc) && (wc) <= 0xFFFF) || (0xE000 <= (wc) && (wc) <= 0xFFFF) \
+    ((0x0000 <= int(wc) && (wc) <= 0xFFFF) || (0xE000 <= (wc) && (wc) <= 0xFFFF) \
        ? (wc) \
      : 0x10000 <= (wc) && (wc) <= 0x10FFFF \
        ? (((((wc) - 0x10000) >> 10) + 0xD800) | \
@@ -724,7 +724,7 @@ Json::serialize(std::string& sb, const std::string& s)
                 }
             }
         }
-        switch (0 <= x && x <= 127 ? kEscapeLiteral[x] : 9) {
+        switch (0 <= int(x) && x <= 127 ? kEscapeLiteral[x] : 9) {
             case 0:
                 sb += x;
                 break;
