@@ -120,7 +120,7 @@ ckd_add(__T* __res, __U __a, __V __b)
                     !std::is_same<__U, char>::value &&
                     !std::is_same<__V, char>::value,
                   "unqualified char type is ambiguous");
-    __ckd_uintmax_t __x = __a;
+    __ckd_uintmax_t __x = (__ckd_uintmax_t) __a;
     __ckd_uintmax_t __y = __b;
     __ckd_uintmax_t __z = __x + __y;
     *__res = __z;
@@ -249,7 +249,7 @@ ckd_mul(__T* __res, __U __a, __V __b)
                     !std::is_same<__U, char>::value &&
                     !std::is_same<__V, char>::value,
                   "unqualified char type is ambiguous");
-    __ckd_uintmax_t __x = __a;
+    __ckd_uintmax_t __x = (__ckd_uintmax_t) __a;
     __ckd_uintmax_t __y = __b;
     if ((sizeof(__U) * 8 - std::is_signed<__U>::value) +
           (sizeof(__V) * 8 - std::is_signed<__V>::value) <=

@@ -245,7 +245,7 @@ StringToDouble(const char* s, size_t n, int* out_processed)
             while (*p >= '0' && *p <= '9') p++;
         }
 
-        *out_processed = p - s;
+        *out_processed = int(p - s);
     }
     return std::atof(s);
 #endif
@@ -298,7 +298,7 @@ Json::Json(unsigned long long value)
         long_value = value;
     } else {
         type_ = Double;
-        double_value = value;
+        double_value = double(value);
     }
 }
 
@@ -490,9 +490,9 @@ Json::getNumber() const
 {
     switch (type_) {
         case Long:
-            return long_value;
+            return double(long_value);
         case Float:
-            return float_value;
+            return float(float_value);
         case Double:
             return double_value;
         default:
@@ -529,7 +529,7 @@ Json::getFloat() const
         case Float:
             return float_value;
         case Double:
-            return double_value;
+            return float(double_value);
         default:
             ON_LOGIC_ERROR("JSON value is not a floating-point number.");
     }
@@ -772,7 +772,7 @@ Json::serialize(std::string& sb, const std::string& s)
         }
         switch (0 <= int(x) && x <= 127 ? kEscapeLiteral[x] : 9) {
             case 0:
-                sb += x;
+                sb += char(x);
                 break;
             case 1:
                 sb += "\\t";
